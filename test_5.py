@@ -4,24 +4,30 @@ sys.path.append('../')
 import collections
 from random import randint
 from aiws import api
-api.authenticate('billy-the-kid','f2d38030ad785607cb697a1e31150a41')
+
+
+api.authenticate('billy-the-kid', 'f2d38030ad785607cb697a1e31150a41')
+# minimum price and maximum price to be used for all policies
 minprice, maxprice = 20, 50
-all_adtypes = ['banner', 'skyscraper','square']
-all_lang = ['EN','NL','GE']
-all_header = [5,15,35]
+# all the elements options we have for serving a page
+all_adtypes = ['banner', 'skyscraper', 'square']
+all_lang = ['EN', 'NL', 'GE']
+all_header = [5, 15, 35]
 all_clr = ['green', 'blue', 'red', 'black', 'white']
+# a "nonsense" page serve for use in make_new_page() and do_beta_page()
 BLANK = {'header': 500,
         'language': "ENE",
         'adtype': "bannera",
         'color': "reda",
         'price': "120.00"}
 
+# used in show_us_what_you_got() to update the pass-fail count on all the page serve elements except price for policy 2 (do_beta())
 def update_counts(name, item):
-    # print("update before: " + str(name)+" "+str(item))
     name[str(item)] += 1
-    # print("update after: " + str(name)+" "+str(item))
     pass
 
+
+# used in show_us_what_you_got() to update the pass-fail count on the price serve element for policy 2
 def update_counts_price(name, item):
     # print("update before: " + str(name)+" "+str(item))
     # print(str(item))
@@ -30,6 +36,9 @@ def update_counts_price(name, item):
     # print("update after: " + str(name)+" "+str(item))
     pass
 
+
+# makes dictionary with the page elements containing pass-fail counts
+# used in show_us_what_you_got()
 def make_storage_for_beta():
     #store how many times something has been chosen with success and how many times with failure
     header_pass = {'5': 1, '15': 1, '35': 1}
@@ -47,7 +56,9 @@ def make_storage_for_beta():
         price_fail.append(1)
     return header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail
 
-def select_policy(page_item, header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail):
+
+# used in do_beta() to choose a page
+def select_page(page_item, header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail):
     n = []
     if page_item == "header":
         n = np.random.beta(header_pass['5'], header_fail['5']),np.random.beta(header_pass['15'], header_fail['15']), np.random.beta(header_pass['35'], header_fail['35'])
@@ -92,16 +103,20 @@ def select_policy(page_item, header_pass, header_fail, language_pass, language_f
         return (n.index(max(n))+minprice) * 1.00
     pass
 
+
+# policy 2: try to find a page that would serve most request nums in a run_id.
 def do_beta(header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail):
-    page = {'header': select_policy("header", header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail),
-              'language': select_policy("language", header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail),
-              'adtype': select_policy("adtype", header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail),
-              'color': select_policy("color", header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail),
-              'price': select_policy("price", header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail)}
+    page = {'header': select_page("header", header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail),
+              'language': select_page("language", header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail),
+              'adtype': select_page("adtype", header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail),
+              'color': select_page("color", header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail),
+              'price': select_page("price", header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail)}
     return page
     pass
 
-def make_vecs_for_similarity():
+
+# make dictionaries to store contexts and successful page serves
+def make_dicts_for_similarity():
     context_vector = {'visitor_id': [],
                       'agent': [],
                       'os': [],
@@ -117,6 +132,8 @@ def make_vecs_for_similarity():
 
     pass
 
+
+# used in do_similarity() to adjust price during exploration phase
 def adjust_price(suc_price, dif_pl, dif_su):
     avg_price = np.ceil(sum(suc_price)/len(suc_price))
     if avg_price-dif_su < minprice:
@@ -130,6 +147,8 @@ def adjust_price(suc_price, dif_pl, dif_su):
     return min_price, max_price
     pass
 
+
+# used in do_similarity() to generate random pages
 #ri = run_id, rn = request_number, mipr=min price, mapr=max price
 def bounded_random(mipr, mapr, suc_price):
     page = {'header': all_header[randint(0,2)],
@@ -140,9 +159,9 @@ def bounded_random(mipr, mapr, suc_price):
     return page, suc_price
     pass
 
-#find page based on similarity
+
+#find page in context_vector based on similarity
 def find_page(context, context_vector, offer_vector, suc_price):
-    vecindex = 0 #TODO maybe change this to random?
     vecindex = randint(0, len(context_vector['age']))
     maxprice = -100
     tmp = 0
@@ -179,11 +198,14 @@ def find_page(context, context_vector, offer_vector, suc_price):
     return page, suc_price
     pass
 
-#rn=request_number, suc_pols=successful stored policies
-#num_suc=number of successes in total, n=to keep track of where we are
+
+#rn=request_number
 #mipr, mapr=minprice, maxprice
-#suc_price=array of successful prices, c=context, cv=contextvector, ov=offervector
+#suc_price=list of successful prices, c=context, cv=contextvector, ov=offervector
 def do_similarity(rn, mipr, mapr, suc_price, c, cv, ov):
+    # tweak these to mess with the exploration / exploitation
+    # f1 = num iterations first exploration phase, same for f2 and f3
+    # f4 = number of successful policies you want to have stored. this ends the exploration phase
     f1, f2, f3, f4 = 100, 200, 300, 201
     suc_pols = len(ov['price'])
 
@@ -205,7 +227,9 @@ def do_similarity(rn, mipr, mapr, suc_price, c, cv, ov):
         print("BOO")
     pass
 
+
 #store successful context and page serve
+# i dont know why i called it vector. they are dictionaries with a list as a value
 def store_page(context, context_vector, offer_vector, tmp_offer_vector):
     context_vector['visitor_id'].append(context['context']['visitor_id'])
     context_vector['agent'].append(context['context']['agent'])
@@ -221,7 +245,10 @@ def store_page(context, context_vector, offer_vector, tmp_offer_vector):
     return context_vector, offer_vector
     pass
 
-#1p1 is similarity, p2 is beta
+
+# given all your policies, it selects the winner by drawing a number from beta distr
+#returns the page of the winning policy
+#p1 is similarity, p2 is beta, p3 is beta_page
 def make_new_page(p1, p2, p1pass, p1fail, p2pass, p2fail, p3, p3pass, p3fail):
     # print p1
     # print p2
@@ -242,6 +269,7 @@ def make_new_page(p1, p2, p1pass, p1fail, p2pass, p2fail, p3, p3pass, p3fail):
         return p3, 3
     pass
 
+
 #samples from beta distribution, gets pairs of a and b from a list of policies that keeps growing
 #ov=offervector, ov_pass=if page got chosen and passed, ov_fail=if page got chosen and failed
 def do_beta_page(ov, ov_pass, ov_fail):
@@ -261,6 +289,8 @@ def do_beta_page(ov, ov_pass, ov_fail):
         return page
     pass
 
+
+#checks if a page is already stored
 def check_if_page_in_ov(page, ov):
     ind = []
     b = False
@@ -277,43 +307,84 @@ def check_if_page_in_ov(page, ov):
     return b, ind
     pass
 
+
 #remove all offers in ov and cv that are below [t]hreshold
 def remove_weak_pages(t, ov, cv):
     ind = []
     n = 0
+    newcv, newov = make_dicts_for_similarity()
     for i in ov["price"]:
         if i < t:
             ind.append(n)
         n += 1
+    #only add the page and offer elements that are not part of the removal set
+    for gg in xrange(len(ov["price"])):
+        if gg not in ind:
+            # print ov["header"][gg]
+            # print str(type(newov["header"]))
+            # print newov["header"]
+            newov["header"].append(ov["header"][gg])
+            newov["language"].append(ov["language"][gg])
+            newov["adtype"].append(ov["adtype"][gg])
+            newov["color"].append(ov["color"][gg])
+            newov["price"].append(ov["price"][gg])
+            newcv["visitor_id"].append(cv["visitor_id"][gg])
+            newcv["agent"].append(cv["agent"][gg])
+            newcv["os"].append(cv["os"][gg])
+            newcv["language"].append(cv["language"][gg])
+            newcv["age"].append(cv["age"][gg])
+            newcv["referrer"].append(cv["referrer"][gg])
 
-    for i in ind:
-        ov["header"].pop(i)
-        ov["language"].pop(i)
-        ov["adtype"].pop(i)
-        ov["color"].pop(i)
-        ov["price"].pop(i)
-        cv["visitor_id"].pop(i)
-        cv["agent"].pop(i)
-        cv["os"].pop(i)
-        cv["language"].pop(i)
-        cv["age"].pop(i)
-        cv["referrer"].pop(i)
+    # for i in ind:
+    #     ov["header"].pop(i)
+    #     ov["language"].pop(i)
+    #     ov["adtype"].pop(i)
+    #     ov["color"].pop(i)
+    #     ov["price"].pop(i)
+    #     cv["visitor_id"].pop(i)
+    #     cv["agent"].pop(i)
+    #     cv["os"].pop(i)
+    #     cv["language"].pop(i)
+    #     cv["age"].pop(i)
+    #     cv["referrer"].pop(i)
     #return the vector with the indices at which to remove the items. need to remove them in
     # the thing that keeps track of pass and fail of p3
-    return ind, ov, cv
+    return ind, newov, newcv
     pass
 
 
+# main method. show them what you got
+#          ___
+#     . -^   `--,
+#    /# =========`-_
+#   /# (--====___====\
+#  /#   .- --.  . --.|
+# /##   |  * ) (   * ),
+# |##   \    /\ \   / |
+# |###   ---   \ ---  |
+# |####      ___)    #|
+# |######           ##|
+#  \##### ---------- /
+#   \####           (
+#    `\###          |
+#      \###         |
+#       \##        |
+#        \###.    .)
+#         `======/
 def show_us_what_you_got():
     avg_runid = []
     req_nums = 10000
 
-    for run_id in xrange(5000, 5010):
+    # for run_id in xrange(5000, 5010):
+    for run_id in xrange(0, 10):
         cumulative_reward = 0
         num_suc = 0
         header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail = make_storage_for_beta()
-        context_vector, offer_vector = make_vecs_for_similarity()
+        context_vector, offer_vector = make_dicts_for_similarity()
         mipr, mapr = minprice, maxprice
+        # ---
+        # make a pass and fail int to store how many times you pass and fail
+        # ---
         p1pass, p1fail, p2pass, p2fail, p3pass, p3fail = 1, 1, 1, 1, 1, 1
         suc_price = []
         ov_pass, ov_fail = [], []
@@ -324,9 +395,12 @@ def show_us_what_you_got():
             page1, suc_price, mipr, mapr = do_similarity(request_number, mipr, mapr, suc_price, context, context_vector, offer_vector)
             page2 = do_beta(header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail)
             page3 = do_beta_page(offer_vector, ov_pass, ov_fail)
+            # ---
+            #page4 = your_new_policy(context)
+            # ---
 
+            # add your new page to make_new_page()
             page, winner = make_new_page(page1, page2, p1pass, p1fail, p2pass, p2fail, page3, p3pass, p3fail)
-            # page = page2
 
             result = api.serve_page(run_id, request_number,
                                     header=page['header'],
@@ -344,25 +418,23 @@ def show_us_what_you_got():
                 update_counts(adtype_pass, page['adtype'])
                 update_counts(color_pass, page['color'])
                 update_counts_price(price_pass, page['price'])
-                #update similarity vectors
-                # tmp_offer_vector = {'header': page["header"],
-                #                     'language': page["language"],
-                #                     'adtype': page["adtype"],
-                #                     'color': page["color"],
-                #                     'price': page["price"]}
                 # if winner =! 3 and if the page is not stored then store the success page
                 bb, indd = check_if_page_in_ov(page, offer_vector)
                 if winner < 3 and not bb:
                     context_vector, offer_vector = store_page(context, context_vector, offer_vector, page)
                     #grow vector as offers get added
-                    ov_pass.append(2) # 2 because 1 is if it is an option, +1 because it was already successful once
+                    ov_pass.append(1)
                     ov_fail.append(1)
+
                 suc_price.append(page["price"])
                 b, ind = check_if_page_in_ov(page, offer_vector)
                 if b:
                     for i in ind:
                         ov_pass[i] += 1
 
+                # ---
+                # update the counter of your new policy
+                # ---
                 #update beta p1 p2 p3
                 if winner == 1:
                     p1pass += 1
@@ -384,7 +456,9 @@ def show_us_what_you_got():
                 if b:
                     for i in ind:
                         ov_fail[i] += 1
-
+                # ---
+                # update the counter of your new policy
+                # ---
                 #update beta p1 p2 p3
                 if winner == 1:
                     p1fail += 1
@@ -392,12 +466,20 @@ def show_us_what_you_got():
                     p2fail += 1
                 elif winner == 3:
                     p3fail += 1
-
+            # removing excess weak / cheap pages
             if len(offer_vector["price"]) > 40:
-                indx, offer_vector, context_vector = remove_weak_pages(23, offer_vector, context_vector)
-                for ii in indx:
-                    thingy = ov_pass.pop(ii)
-                    thingy = ov_fail.pop(ii)
+                prev = len(offer_vector["price"])
+                # thres = np.mean(suc_price) #this is thresholding with the mean but i think it will delete too much
+                thres = 23
+                newovp, newovf = [], []
+                indx, offer_vector, context_vector = remove_weak_pages(thres, offer_vector, context_vector)
+                for ii in xrange(prev):
+                    if ii not in indx:
+                        newovp.append(ov_pass[ii])
+                        newovf.append(ov_fail[ii])
+                    # thingy = ov_pass.pop(ii)
+                    # thingy = ov_fail.pop(ii)
+                ov_pass, ov_fail = newovp, newovf
 
             print("run_id="+str(run_id)+" request_number="+str(request_number)+" mean_reward="+str(cumulative_reward/req_nums)+" success rate="+str(num_suc)+":"+str(request_number)+" p1-pf: "+str(p1pass)+","+str(p1fail)+" p2-pf: "+str(p2pass)+","+str(p2fail)+" p3-pf: "+str(p3pass)+","+str(p3fail))
             print("num_suc: "+str(num_suc))
@@ -405,6 +487,9 @@ def show_us_what_you_got():
         #to prevent division by 0
         if num_suc == 0:
             num_suc = 1
+        # ---
+        # you might want to end a print at the end of avg_runid to check the pass-fail ration of your policy
+        # ---
         avg_runid.append((run_id, cumulative_reward/req_nums, num_suc, cumulative_reward/num_suc))
         print("avg per runid: ")
         print(avg_runid)
