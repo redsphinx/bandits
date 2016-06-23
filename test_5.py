@@ -481,9 +481,9 @@ def show_us_what_you_got():
                     # thingy = ov_fail.pop(ii)
                 ov_pass, ov_fail = newovp, newovf
 
-            print("run_id="+str(run_id)+" request_number="+str(request_number)+" mean_reward="+str(cumulative_reward/req_nums)+" success rate="+str(num_suc)+":"+str(request_number)+" p1-pf: "+str(p1pass)+","+str(p1fail)+" p2-pf: "+str(p2pass)+","+str(p2fail)+" p3-pf: "+str(p3pass)+","+str(p3fail))
-            print("num_suc: "+str(num_suc))
-            print("price: " + str(page["price"]))
+            print("run_id="+str(run_id)+" request_number="+str(request_number)+" mean_reward="+str(cumulative_reward/req_nums)+" success rate="+str(num_suc)+":"+str(request_number)+"price: "+str(page["price"])+" p1-pf: "+str(p1pass)+","+str(p1fail)+" p2-pf: "+str(p2pass)+","+str(p2fail)+" p3-pf: "+str(p3pass)+","+str(p3fail))
+            # print("num_suc: "+str(num_suc))
+            # print("price: " + str(page["price"]))
         #to prevent division by 0
         if num_suc == 0:
             num_suc = 1
