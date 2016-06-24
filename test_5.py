@@ -375,8 +375,8 @@ def show_us_what_you_got():
     avg_runid = []
     req_nums = 10000
 
-    # for run_id in xrange(5000, 5010):
-    for run_id in xrange(0, 10):
+    for run_id in xrange(5000, 5010):
+    # for run_id in xrange(0, 10):
         cumulative_reward = 0
         num_suc = 0
         header_pass, header_fail, language_pass, language_fail, adtype_pass, adtype_fail, color_pass, color_fail, price_pass, price_fail = make_storage_for_beta()
@@ -481,7 +481,7 @@ def show_us_what_you_got():
                     # thingy = ov_fail.pop(ii)
                 ov_pass, ov_fail = newovp, newovf
 
-            print("run_id="+str(run_id)+" request_number="+str(request_number)+" mean_reward="+str(cumulative_reward/req_nums)+" success rate="+str(num_suc)+":"+str(request_number)+"price: "+str(page["price"])+" p1-pf: "+str(p1pass)+","+str(p1fail)+" p2-pf: "+str(p2pass)+","+str(p2fail)+" p3-pf: "+str(p3pass)+","+str(p3fail))
+            print("run_id="+str(run_id)+" request_number="+str(request_number)+" mean_reward="+str(cumulative_reward/req_nums)+" success rate="+str(num_suc)+":"+str(request_number)+" price: "+str(page["price"])+" p1-pf: "+str(p1pass)+","+str(p1fail)+" p2-pf: "+str(p2pass)+","+str(p2fail)+" p3-pf: "+str(p3pass)+","+str(p3fail))
             # print("num_suc: "+str(num_suc))
             # print("price: " + str(page["price"]))
         #to prevent division by 0
