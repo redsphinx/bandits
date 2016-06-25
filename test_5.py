@@ -70,8 +70,8 @@ def select_page(page_item, header_pass, header_fail, language_pass, language_fai
                 return item
             i += 1
     elif page_item == "language":
-        # n = np.random.beta(language_pass['NL'], language_fail['NL']),np.random.beta(language_pass['EN'], language_fail['EN']), np.random.beta(language_pass['GE'], language_fail['GE'])
-        n = np.random.beta(language_fail['NL'], language_pass['NL']),np.random.beta(language_fail['EN'], language_pass['EN']), np.random.beta(language_fail['GE'], language_pass['GE'])
+        n = np.random.beta(language_pass['NL'], language_fail['NL']),np.random.beta(language_pass['EN'], language_fail['EN']), np.random.beta(language_pass['GE'], language_fail['GE'])
+        # n = np.random.beta(language_fail['NL'], language_pass['NL']),np.random.beta(language_fail['EN'], language_pass['EN']), np.random.beta(language_fail['GE'], language_pass['GE'])
         ind = n.index(max(n))
         i = 0
         for item in language_pass:
@@ -334,21 +334,6 @@ def remove_weak_pages(t, ov, cv):
             newcv["language"].append(cv["language"][gg])
             newcv["age"].append(cv["age"][gg])
             newcv["referrer"].append(cv["referrer"][gg])
-
-    # for i in ind:
-    #     ov["header"].pop(i)
-    #     ov["language"].pop(i)
-    #     ov["adtype"].pop(i)
-    #     ov["color"].pop(i)
-    #     ov["price"].pop(i)
-    #     cv["visitor_id"].pop(i)
-    #     cv["agent"].pop(i)
-    #     cv["os"].pop(i)
-    #     cv["language"].pop(i)
-    #     cv["age"].pop(i)
-    #     cv["referrer"].pop(i)
-    #return the vector with the indices at which to remove the items. need to remove them in
-    # the thing that keeps track of pass and fail of p3
     return ind, newov, newcv
     pass
 
