@@ -6,6 +6,6 @@ some ideas:
     -- if a low price gets chosen a lot, set its pass count to 1 (beware that this will mess with the beta distribution)
     -- initialize the price pass-fail with a bias towards higher prices
 3. Integrate the Similarity policy with the beta-page policy (in other words, make better use of the similarity between stored and requested contexts)
-4. Instead of choosing a winner policy each time, merge the policies.
+4. Instead of choosing a winner policy and serving its recommended page, merge the pages recommened by the policies.
 5. I'm beginning to suspect that each run_id has an optimal page that sells for a high price and that this optimal page can serve many contexts.
     -- this is related to the idea that we should model the page-space as a distribution over all possible combination of page elements. And then find out where the neighbourhood is in the page-space that gives us the successful page element combinations. 
