@@ -350,11 +350,11 @@ def remove_weak_pages(t, ov, cv):
 #       \##        |
 #        \###.    .)
 #         `======/
-def show_us_what_you_got():
+def show_us_what_you_got(from_run_id=5000, to_run_id=5010):
     avg_runid = []
     req_nums = 10000
 
-    for run_id in xrange(5000, 5010):
+    for run_id in xrange(from_run_id, to_run_id):
     # for run_id in xrange(0, 10):
         cumulative_reward = 0
         num_suc = 0
