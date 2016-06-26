@@ -117,17 +117,17 @@ def do_beta(header_pass, header_fail, language_pass, language_fail, adtype_pass,
 
 # make dictionaries to store contexts and successful page serves
 def make_dicts_for_similarity():
-    context_vector = {'visitor_id': [],
-                      'agent': [],
-                      'os': [],
-                      'language': [],
-                      'age': [],
-                      'referrer': []}
-    offer_vector = {'header': [],
-                    'language': [],
-                    'adtype': [],
-                    'color': [],
-                    'price': []}
+    context_vector = {'visitor_id': np.array([]),
+                      'agent': np.array([]),
+                      'os': np.array([]),
+                      'language': np.array([]),
+                      'age': np.array([]),
+                      'referrer': np.array([])}
+    offer_vector = {'header': np.array([]),
+                    'language': np.array([]),
+                    'adtype': np.array([]),
+                    'color': np.array([]),
+                    'price': np.array([])}
     return context_vector, offer_vector
 
     pass
@@ -231,17 +231,17 @@ def do_similarity(rn, mipr, mapr, suc_price, c, cv, ov):
 #store successful context and page serve
 # i dont know why i called it vector. they are dictionaries with a list as a value
 def store_page(context, context_vector, offer_vector, tmp_offer_vector):
-    context_vector['visitor_id'].append(context['context']['visitor_id'])
-    context_vector['agent'].append(context['context']['agent'])
-    context_vector['os'].append(context['context']['os'])
-    context_vector['language'].append(context['context']['language'])
-    context_vector['age'].append(context['context']['age'])
-    context_vector['referrer'].append(context['context']['referrer'])
-    offer_vector['header'].append(tmp_offer_vector['header'])
-    offer_vector['language'].append(tmp_offer_vector['language'])
-    offer_vector['adtype'].append(tmp_offer_vector['adtype'])
-    offer_vector['color'].append(tmp_offer_vector['color'])
-    offer_vector['price'].append(tmp_offer_vector['price'])
+    context_vector['visitor_id'] = np.append(context_vector['visitor_id'], context['context']['visitor_id'])
+    context_vector['agent'] = np.append(context_vector['agent'], context['context']['agent'])
+    context_vector['os'] = np.append(context_vector['os'], context['context']['os'])
+    context_vector['language'] = np.append(context_vector['language'], context['context']['language'])
+    context_vector['age'] = np.append(context_vector['age'], context['context']['age'])
+    context_vector['referrer'] = np.append(context_vector['referrer'], context['context']['referrer'])
+    offer_vector['header'] = np.append(offer_vector['header'], tmp_offer_vector['header'])
+    offer_vector['language'] = np.append(offer_vector['language'], tmp_offer_vector['language'])
+    offer_vector['adtype'] = np.append(offer_vector['adtype'], tmp_offer_vector['adtype'])
+    offer_vector['color'] = np.append(offer_vector['color'], tmp_offer_vector['color'])
+    offer_vector['price'] = np.append(offer_vector['price'], tmp_offer_vector['price'])
     return context_vector, offer_vector
     pass
 
@@ -310,30 +310,24 @@ def check_if_page_in_ov(page, ov):
 
 #remove all offers in ov and cv that are below [t]hreshold
 def remove_weak_pages(t, ov, cv):
-    ind = []
-    n = 0
     newcv, newov = make_dicts_for_similarity()
-    for i in ov["price"]:
-        if i < t:
-            ind.append(n)
-        n += 1
-    #only add the page and offer elements that are not part of the removal set
-    for gg in xrange(len(ov["price"])):
-        if gg not in ind:
-            # print ov["header"][gg]
-            # print str(type(newov["header"]))
-            # print newov["header"]
-            newov["header"].append(ov["header"][gg])
-            newov["language"].append(ov["language"][gg])
-            newov["adtype"].append(ov["adtype"][gg])
-            newov["color"].append(ov["color"][gg])
-            newov["price"].append(ov["price"][gg])
-            newcv["visitor_id"].append(cv["visitor_id"][gg])
-            newcv["agent"].append(cv["agent"][gg])
-            newcv["os"].append(cv["os"][gg])
-            newcv["language"].append(cv["language"][gg])
-            newcv["age"].append(cv["age"][gg])
-            newcv["referrer"].append(cv["referrer"][gg])
+
+    to_be_removed = ov["price"] < t
+    to_be_kept = to_be_removed != True
+    newov["header"] = ov["header"][to_be_kept]
+    newov["language"] = ov["language"][to_be_kept]
+    newov["adtype"] = ov["adtype"][to_be_kept]
+    newov["color"] = ov["color"][to_be_kept]
+    newov["price"] = ov["price"][to_be_kept]
+    newcv["visitor_id"] = cv["visitor_id"][to_be_kept]
+    newcv["agent"] = cv["agent"][to_be_kept]
+    newcv["os"] = cv["os"][to_be_kept]
+    newcv["language"] = cv["language"][to_be_kept]
+    newcv["age"] = cv["age"][to_be_kept]
+    newcv["referrer"] = cv["referrer"][to_be_kept]
+    ind = np.array(range(0, len(ov["price"])))
+    ind = ind[to_be_removed]
+
     return ind, newov, newcv
     pass
 
