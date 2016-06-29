@@ -309,7 +309,7 @@ def run_stuff_1(run_id, request_number, all_adtypes, all_header, all_clr, all_la
         store_policy(context, context_vector, offer_vector, tmp_offer_vector)
         suc_price.append(offer_price)
         success += 1
-        avg_suc_price.append(cumulative_reward / success)
+        # avg_suc_price.append(cumulative_reward / success)
         # print("price= "+str(offer_price))
     #endif
     if success == 0:
@@ -353,7 +353,7 @@ def run_stuff_2(run_id, request_number, all_adtypes, all_header, all_clr, all_la
                         'price': offer_price}
         store_policy(context, context_vector, offer_vector, tmp_offer_vector)
         success += 1
-        avg_suc_price.append(cumulative_reward / success)
+        # avg_suc_price.append(cumulative_reward / success)
         # print("price= "+str(offer_price))
     #endif
     if success == 0:
@@ -459,25 +459,28 @@ def train_it_smart(cumulative_reward, run_id, context_vector, offer_vector, succ
 
     #adjust prices
     for request_number in xrange(0,100):
-        success, ttime, cumulative_reward, avg_suc_price  = run_stuff_1(run_id, request_number, all_adtypes, all_header, all_clr, all_lang, min_price, max_price, cumulative_reward, n, suc_price, success, context_vector, offer_vector, avg_suc_price)
+        success, ttime, cumulative_reward, avg_suc_price = run_stuff_1(run_id, request_number, all_adtypes, all_header, all_clr, all_lang, min_price, max_price, cumulative_reward, n, suc_price, success, context_vector, offer_vector, avg_suc_price)
         n += 1
         total_serve_time.append(ttime)
+        avg_suc_price.append(success)
 
-    min_price, max_price = adjust_price(suc_price, 5, 0)
+    min_price, max_price = adjust_price(suc_price, 5, 1)
     suc_price = []
 
     for request_number in xrange(100, 200):
         success, ttime, cumulative_reward, avg_suc_price = run_stuff_1(run_id, request_number, all_adtypes, all_header, all_clr, all_lang, min_price, max_price, cumulative_reward, n, suc_price, success, context_vector, offer_vector, avg_suc_price)
         n += 1
         total_serve_time.append(ttime)
-    min_price, max_price = adjust_price(suc_price, 3, 0)
+        avg_suc_price.append(success)
+    min_price, max_price = adjust_price(suc_price, 3, 1)
     suc_price = []
 
     for request_number in xrange(200, 300):
         success, ttime, cumulative_reward, avg_suc_price = run_stuff_1(run_id, request_number, all_adtypes, all_header, all_clr, all_lang, min_price, max_price, cumulative_reward, n, suc_price, success, context_vector, offer_vector, avg_suc_price)
         n += 1
         total_serve_time.append(ttime)
-    min_price, max_price = adjust_price(suc_price, 1, 0)
+        avg_suc_price.append(success)
+    min_price, max_price = adjust_price(suc_price, 1, 1)
     #gather successful policies
     request_number = 300
     suc_pols = 0
@@ -485,12 +488,13 @@ def train_it_smart(cumulative_reward, run_id, context_vector, offer_vector, succ
         suc_pols, success, ttime, cumulative_reward, avg_suc_price = run_stuff_2(run_id, request_number, all_adtypes, all_header, all_clr, all_lang, min_price, max_price, cumulative_reward, n, context_vector, offer_vector, success, avg_suc_price)
         request_number += 1
         n += 1
+        avg_suc_price.append(success)
         total_serve_time.append(ttime)
     #endwhile
 
     beg = request_number + 1
     for request_number in xrange(beg, 10000):
-    # for request_number in xrange(beg, 2000):
+    # for request_number in xrange(beg, beg+10):
         context = api.get_context(run_id, request_number)
         tstart = time.clock()
         policy = find_policy(context, context_vector, offer_vector)
@@ -504,14 +508,15 @@ def train_it_smart(cumulative_reward, run_id, context_vector, offer_vector, succ
         ttime = tstop - tstart
         total_serve_time.append(ttime)
         cumulative_reward += policy['price'] * result['success']
-        print(cumulative_reward)
+        # print(cumulative_reward)
         if result['success']:
             success += 1
-            avg_suc_price.append(cumulative_reward / success)
+            # avg_suc_price.append(cumulative_reward / success)
 
             # print("price= "+str(policy['price']))
         print("run_id="+str(run_id)+" request_number="+str(request_number)+" mean_reward="+str(cumulative_reward/request_number)+" min, max="+str(min_price)+","+str(max_price)+" success rate="+str(success)+":"+str(request_number)+" avg_succes_price:"+str(cumulative_reward/success))
         n += 1
+        avg_suc_price.append(success)
         # mean_reward = cumulative_reward / n
         # print "Mean reward: %.2f euro" % mean_reward
     #endfor
@@ -727,7 +732,7 @@ def test_gabi_2():
 
     avg_runid = []
     # for run_id in xrange(0, 10):
-    for run_id in xrange(5000, 5010):
+    for run_id in xrange(5009, 5010):
         # iters = 0
         context_vector = {'visitor_id': [],
                           'agent': [],
@@ -746,9 +751,16 @@ def test_gabi_2():
 
         success, cumulative_reward, tot_time, avg_suc_price = train_it_smart(cumulative_reward, run_id, context_vector, offer_vector, 0, avg_suc_price)
 
-        myfile = open("avg_success_price_"+str(run_id)+".csv", 'wb')
+        # avg_success_price is the reverse of regret
+        regret = range(1, len(avg_suc_price)+1)
+        for mm in xrange(0, len(avg_suc_price)):
+            regret[mm] = regret[mm] - avg_suc_price[mm]
+
+        # regret = regret - avg_suc_price
+        print(regret)
+        myfile = open(str(run_id)+".csv", 'wb')
         wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
-        wr.writerow(avg_suc_price)
+        wr.writerow(regret)
 
         avg_runid.append((run_id, cumulative_reward/10000, success, cumulative_reward/success, sum(tot_time)/10000))
         # avg_runid.append((run_id, cumulative_reward/2000, success, cumulative_reward/success, sum(tot_time)/2000))
