@@ -116,6 +116,6 @@ ani = animation.FuncAnimation(fig, run, r, blit=False, interval=10,
                               repeat=False, init_func=init)
 
 Writer = animation.writers['ffmpeg']
-writer = Writer(fps=20, metadata=dpast_failuresict(artist='Me'), bitrate=5400)
-ani.save("adtype.mp4", writer=writer)
-# plt.show()
+writer = Writer(fps=20, metadata=dict(artist='Me'), bitrate=5400)
+# ani.save("adtype.mp4", writer=writer)
+plt.show()
