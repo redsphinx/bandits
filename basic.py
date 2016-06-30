@@ -39,7 +39,8 @@ def schwifty(from_run_id=0, to_run_id=20):
         # adtype_map = {'skyscraper': 0, 'square': 1, 'banner': 2}
         adtype_tries = np.ones((2, 3))
         count = 0
-        for retry in [0, 1]:
+        for retry in [0]:
+            parameter_timeline = np.zeros((10000, 38), dtype=np.int16)
             cumulative_reward = 0
             success_count = 0
             for request_number in xrange(0, 10000):
@@ -75,8 +76,15 @@ def schwifty(from_run_id=0, to_run_id=20):
                 success_count += result['success']
                 if request_number % 100 == 0:
                     print "%.2f, %d/%d" % (
-                    cumulative_reward / (request_number + 1), success_count, (request_number + 1))
+                        cumulative_reward / (request_number + 1), success_count, (request_number + 1))
                 count += 1
+                parameter_timeline[request_number, 0:10] = np.reshape(color_tries, (1, 10))
+                parameter_timeline[request_number, 10:16] = np.reshape(adtype_tries, (1, 6))
+                parameter_timeline[request_number, 16:38] = np.reshape(price_tries, (1, 22))
+
+            print "%.2f, %d/%d" % (
+                cumulative_reward / (request_number + 1), success_count, (request_number + 1))
+            np.savetxt("timeline-%d.csv" % run_id, parameter_timeline, delimiter=",", )
 
 
 if __name__ == "__main__":
